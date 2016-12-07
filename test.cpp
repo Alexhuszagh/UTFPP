@@ -21,17 +21,19 @@ int main(int argc, char *argv[])
     buffer << stream.rdbuf();
     std::string utf8 = buffer.str();
 
-    // utf8 <==> utf32
-    auto utf32 = UTF8_TO_UTF32(utf8);
-    assert(UTF32_TO_UTF8(utf32) == utf8);
+    for (int i = 0; i < 10000; i++) {
+        // utf8 <==> utf32
+        auto utf32 = UTF8_TO_UTF32(utf8);
+        assert(UTF32_TO_UTF8(utf32) == utf8);
 
-    // utf16 <==> utf32
-    auto utf16 = UTF32_TO_UTF16(utf32);
-    assert(UTF16_TO_UTF32(utf16) == utf32);
+        // utf16 <==> utf32
+        auto utf16 = UTF32_TO_UTF16(utf32);
+        assert(UTF16_TO_UTF32(utf16) == utf32);
 
-    // utf16 <==> utf8
-    assert(UTF16_TO_UTF8(utf16) == utf8);
-    assert(UTF8_TO_UTF16(utf8) == utf16);
+        // utf16 <==> utf8
+        assert(UTF16_TO_UTF8(utf16) == utf8);
+        assert(UTF8_TO_UTF16(utf8) == utf16);
+    }
 
     return 0;
 }
