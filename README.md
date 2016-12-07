@@ -1,4 +1,4 @@
-# UTF++
+# UTFPP
 
 A light-weight, fast, dependency-free, C++ library for Unicode encoding conversions. It is free for commercial and open-source projects.
 
@@ -17,13 +17,13 @@ Utf++ also uses template-driven libraries to add compatibility with the C++ STL,
 
 ## Performance
 
-The performance of ICU, UTF++, and libiconv were compared for the conversion of 9000 code points  covering most languages for 10,000 iterations for all pairwise conversions between UTF8, UTF16, and UTF32.
+The performance of ICU, UTFPP, and libiconv were compared for the conversion of 9000 code points  covering most languages for 10,000 iterations for all pairwise conversions between UTF8, UTF16, and UTF32.
 
 | Library   | Time (seconds) |
 |:---------:|:--------------:|
 | ICU (C++) | 2.120          |
 | libiconv  | 2.795          |
-| utf++     | 1.201          |
+| UTFPP     | 1.201          |
 
 ## Building
 
