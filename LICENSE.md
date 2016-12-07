@@ -1,7 +1,7 @@
 # Unicode Terms of Use
 
-| Copyright 2001-2004 Unicode, Inc.
-| Copyright 2016 2016 The Regents of the University of California.
+Copyright 2001-2004 Unicode, Inc.  
+Copyright 2016 2016 The Regents of the University of California.
 
 # Disclaimer
 
