@@ -6,6 +6,7 @@ A light-weight, fast, dependency-free, C++ library for Unicode encoding conversi
 
 - [Motivation](#motivation)
 - [Performance](#performance)
+- [Testing](#testing)
 - [Contributors](#contributors)
 - [License](#license)
 
@@ -17,13 +18,19 @@ Utf++ also uses template-driven libraries to add compatibility with the C++ STL,
 
 ## Performance
 
-The performance of ICU, UTFPP, and libiconv were compared for the conversion of 9000 code points  covering most languages for 10,000 iterations for all pairwise conversions between UTF8, UTF16, and UTF32.
+The performance of ICU, UTFPP, and libiconv were compared for the conversion of 9000 code points covering most languages with 10,000 iterations for all pairwise conversions between UTF8, UTF16, and UTF32.
 
 | Library   | Time (seconds) |
 |:---------:|:--------------:|
 | ICU (C++) | 2.120          |
 | libiconv  | 2.795          |
 | UTFPP     | 1.201          |
+
+## Testing
+
+Since UTF8 and UTF16 are variable width encodings, bugs in iOS, Qt3, requiring test with all subsets of Unicode code points. UTFPP assumes variable width encoding for UTF8 and UTF16, and allocates memory for the least efficient conversion by default. 
+
+To ensure high code points (wide characters) do not cause buffer overflows, UTFPP is tested with an 2500 emojis, where more than 85% of the UTF8 and UTF16 representations require 4 bytes per code point.
 
 ## Building
 

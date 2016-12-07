@@ -60,6 +60,12 @@ struct BufferRangeError: public std::exception
     }
 };
 
+
+/** \brief Replace illegal Unicode character if checkStrict is off.
+ */
+uint32_t checkStrict(bool strict);
+
+
 // CHARACTERS
 // ----------
 
@@ -70,7 +76,8 @@ struct BufferRangeError: public std::exception
 template <typename Iter16>
 void utf32To16(uint32_t c,
     Iter16 &begin,
-    Iter16 &end)
+    Iter16 &end,
+    bool strict)
 {
     // limits
     constexpr uint32_t maxUtf32 = 0x0010FFFF;
@@ -84,12 +91,12 @@ void utf32To16(uint32_t c,
     // variables
     if (c <= maxbmp) {
         if (c >= highBegin && c <= lowBegin) {
-            throw IllegalCharacterError();
+            *begin++ = checkStrict(strict);
         } else {
             *begin++ = UTF16(c);
         }
     } else if (c > maxUtf32) {
-        throw IllegalCharacterError();
+        *begin++ = checkStrict(strict);
     } else {
         if (begin + 1 > end) {
             throw BufferRangeError();
@@ -107,7 +114,8 @@ void utf32To16(uint32_t c,
 template <typename Iter8>
 void utf32To8(uint32_t c,
     Iter8 &begin,
-    Iter8 end)
+    Iter8 end,
+    bool strict)
 {
     // limits
     constexpr uint32_t maxUtf32 = 0x0010FFFF;
@@ -125,7 +133,8 @@ void utf32To8(uint32_t c,
     } else if (c <= maxUtf32) {
         bytes = 4;
     } else {
-        throw IllegalCharacterError();
+        bytes = 3;
+        c = checkStrict(strict);
     }
 
     // check range
@@ -158,7 +167,8 @@ void utf32To8(uint32_t c,
  */
 template <typename Iter16>
 uint32_t utf16To32(Iter16 &begin,
-    Iter16 end)
+    Iter16 end,
+    bool strict)
 {
     // limits
     constexpr uint32_t highBegin = 0xD800;
@@ -175,10 +185,10 @@ uint32_t utf16To32(Iter16 &begin,
         if (c2 >= lowBegin && c2 <= lowEnd) {
             return ((c1 - highBegin) << shift) + (c2 - lowBegin) + base;
         } else {
-            throw IllegalCharacterError();
+            return checkStrict(strict);
         }
     } else if (c1 >= lowBegin && c1 <= lowEnd) {
-        throw IllegalCharacterError();
+        return checkStrict(strict);
     } else {
         return c1;
     }
@@ -189,21 +199,26 @@ uint32_t utf16To32(Iter16 &begin,
  */
 template <typename Iter8>
 uint32_t utf8To32(Iter8 &begin,
-    Iter8 end)
+    Iter8 end,
+    bool strict)
 {
     uint32_t c = 0;
     uint8_t bytes = UTF8_BYTES[*begin];
 
     // check range
     if (begin + bytes >= end) {
+        // sourc ebuffer, check whether or not we have space to replace
         throw IllegalCharacterError();
     }
 
     // get our UTF-32 character
     switch (bytes) {
         case 5:
+            c = checkStrict(strict);
+            c <<= 6;
         case 4:
-            throw IllegalCharacterError();
+            c = checkStrict(strict);
+            c <<= 6;
         case 3:
             c += *begin++;
             c <<= 6;
@@ -234,12 +249,13 @@ template <typename Iter32, typename Iter16>
 size_t utf32To16(Iter32 srcBegin,
     Iter32 srcEnd,
     Iter16 dstBegin,
-    Iter16 dstEnd)
+    Iter16 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        utf32To16(*src++, dst, dstEnd);
+        utf32To16(*src++, dst, dstEnd, strict);
     }
 
     return dst - dstBegin;
@@ -254,12 +270,13 @@ template <typename Iter16, typename Iter32>
 size_t utf16To32(Iter16 srcBegin,
     Iter16 srcEnd,
     Iter32 dstBegin,
-    Iter32 dstEnd)
+    Iter32 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        *dst++ = utf16To32(src, srcEnd);
+        *dst++ = utf16To32(src, srcEnd, strict);
     }
 
     return dst - dstBegin;
@@ -274,12 +291,13 @@ template <typename Iter16, typename Iter8>
 size_t utf16To8(Iter16 srcBegin,
     Iter16 srcEnd,
     Iter8 dstBegin,
-    Iter8 dstEnd)
+    Iter8 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        utf32To8(utf16To32(src, srcEnd), dst, dstEnd);
+        utf32To8(utf16To32(src, srcEnd, strict), dst, dstEnd, strict);
     }
 
     return dst - dstBegin;
@@ -294,12 +312,13 @@ template <typename Iter8, typename Iter16>
 size_t utf8To16(Iter8 srcBegin,
     Iter8 srcEnd,
     Iter16 dstBegin,
-    Iter16 dstEnd)
+    Iter16 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        utf32To16(utf8To32(src, srcEnd), dst, dstEnd);
+        utf32To16(utf8To32(src, srcEnd, strict), dst, dstEnd, strict);
     }
 
     return dst - dstBegin;
@@ -314,12 +333,13 @@ template <typename Iter32, typename Iter8>
 size_t utf32To8(Iter32 srcBegin,
     Iter32 srcEnd,
     Iter8 dstBegin,
-    Iter8 dstEnd)
+    Iter8 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        utf32To8(*src++, dst, dstEnd);
+        utf32To8(*src++, dst, dstEnd, strict);
     }
 
     return dst - dstBegin;
@@ -334,12 +354,13 @@ template <typename Iter8, typename Iter32>
 size_t utf8To32(Iter8 srcBegin,
     Iter8 srcEnd,
     Iter32 dstBegin,
-    Iter32 dstEnd)
+    Iter32 dstEnd,
+    bool strict = true)
 {
     auto src = srcBegin;
     auto dst = dstBegin;
     while (src < srcEnd && dst < dstEnd) {
-        *dst++ = utf8To32(src, srcEnd);
+        *dst++ = utf8To32(src, srcEnd, strict);
     }
 
     return dst - dstBegin;

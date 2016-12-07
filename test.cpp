@@ -14,13 +14,11 @@
 #include <string>
 
 
-int main(int argc, char *argv[])
-{
-    std::ifstream stream("characters.utf8");
-    std::stringstream buffer;
-    buffer << stream.rdbuf();
-    std::string utf8 = buffer.str();
 
+/** Test conversion of UTF-8 to and from all UTF encodings.
+ */
+void testBytes(const std::string &utf8)
+{
     for (int i = 0; i < 10000; i++) {
         // utf8 <==> utf32
         auto utf32 = UTF8_TO_UTF32(utf8);
@@ -34,6 +32,24 @@ int main(int argc, char *argv[])
         assert(UTF16_TO_UTF8(utf16) == utf8);
         assert(UTF8_TO_UTF16(utf8) == utf16);
     }
+}
+
+
+/** Read bytes from file.
+ */
+std::string readFile(const std::string &path)
+{
+    std::ifstream stream(path);
+    std::stringstream buffer;
+    buffer << stream.rdbuf();
+    return buffer.str();
+}
+
+
+int main(int argc, char *argv[])
+{
+    testBytes(readFile("characters.utf8"));
+    testBytes(readFile("emoji.utf8"));
 
     return 0;
 }

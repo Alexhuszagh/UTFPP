@@ -31,6 +31,22 @@ const std::array<uint8_t, 256> UTF8_BYTES = {
 };
 const std::array<uint32_t, 6> UTF8_OFFSETS = {0x00000000UL, 0x00003080UL, 0x000E2080UL, 0x03C82080UL, 0xFA082080UL, 0x82082080UL};
 
+
+// HELPERS
+// -------
+
+
+/** \brief Replace illegal Unicode character if checkStrict is off.
+ */
+uint32_t checkStrict(bool strict)
+{
+    constexpr uint32_t replacement = 0x0000FFFD;
+    if (strict) {
+        throw IllegalCharacterError();
+    }
+    return replacement;
+}
+
 }   /* detail */
 
 // FUNCTIONS
@@ -55,7 +71,7 @@ std::string toWide(const std::string &string,
     auto *dst = reinterpret_cast<C2*>(malloc(dstlen * size2));
     auto *dstEnd = dst + dstlen;
 
-    size_t out = function(src, srcEnd, dst, dstEnd);
+    size_t out = function(src, srcEnd, dst, dstEnd, true);
     std::string output(reinterpret_cast<const char*>(dst), out * size2);
     free(dst);
 
@@ -81,7 +97,7 @@ std::string toNarrow(const std::string &string,
     auto *dst = reinterpret_cast<C2*>(malloc(dstlen * size2));
     auto *dstEnd = dst + dstlen;
 
-    size_t out = function(src, srcEnd, dst, dstEnd);
+    size_t out = function(src, srcEnd, dst, dstEnd, true);
     std::string output(reinterpret_cast<const char*>(dst), out * size2);
     free(dst);
 
